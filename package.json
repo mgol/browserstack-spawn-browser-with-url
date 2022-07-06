@@ -1,0 +1,11 @@
+{
+  "name": "browserstack-spawn-browser-with-url",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "browserstack": "^1.6.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.7.1"
+  }
+}
