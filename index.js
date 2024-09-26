@@ -1,57 +1,39 @@
 #!/usr/bin/env node
 
-'use strict';
-
-const browserstackUser = process.env.BROWSER_STACK_USERNAME;
-const browserstackAccessKey = process.env.BROWSER_STACK_ACCESS_KEY;
-
-if (!browserstackUser || !browserstackAccessKey) {
-	console.error(
-		'Environment variables BROWSER_STACK_USERNAME & BROWSER_STACK_ACCESS_KEY need to be set',
-	);
-	process.exitCode = 1;
-	return;
-}
-
-const [, , browserJsonStringifiedData, url] = process.argv;
-
-if (!browserJsonStringifiedData || !url) {
-	console.error(
-		"Usage (see README for more details):\n./index.js 'BROWSER_JSON_DATA' URL",
-	);
-	process.exitCode = 1;
-	return;
-}
-
-let browserJsonData;
-try {
-	browserJsonData = JSON.parse(browserJsonStringifiedData);
-} catch (e) {
-	console.error('Incorrect browser JSON data');
-	process.exitCode = 1;
-	return;
-}
+import { randomBytes } from 'node:crypto';
+import { createWorker } from './lib/api.js';
 
 const main = async () => {
-	const { promisify } = require('util');
-	const browserstack = require('browserstack');
+	const [, , browserJsonStringifiedData, url] = process.argv;
 
-	const client = browserstack.createClient({
-		version: 4,
-		username: browserstackUser,
-		password: browserstackAccessKey,
-	});
+	if (!browserJsonStringifiedData || !url) {
+		console.error(
+			"Usage (see README for more details):\n./index.js 'BROWSER_JSON_DATA' URL",
+		);
+		process.exitCode = 1;
+		return;
+	}
 
-	// const getBrowsers = promisify(client.getBrowsers.bind(client));
-	const createWorker = promisify(client.createWorker.bind(client));
+	let browserJsonData;
+	try {
+		browserJsonData = JSON.parse(browserJsonStringifiedData);
+	} catch (e) {
+		console.error('Incorrect browser JSON data');
+		process.exitCode = 1;
+		return;
+	}
 
-	const browserSettings = {
-		url,
+	const runId = randomBytes(20).toString('hex').slice(0, 8);
+
+	const options = {
+		url: encodeURI(url),
+		project: 'mgol-browserastack-test',
+		build: `Run mgol ${runId}`,
 		timeout: 60,
 		...browserJsonData,
 	};
 
-	const worker = await createWorker(browserSettings);
+	const worker = await createWorker(options);
 	console.log('Worker spawned:', worker);
 };
 
