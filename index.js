@@ -27,7 +27,7 @@ const main = async () => {
 
 	const options = {
 		url: encodeURI(url),
-		project: 'mgol-browserastack-test',
+		project: 'mgol-browserstack-test',
 		build: `Run mgol ${runId}`,
 		timeout: 60,
 		...browserJsonData,
